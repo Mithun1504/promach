@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Mono, Plus_Jakarta_Sans, Syncopate } from "next/font/google";
 import { CustomCursor } from "@/components/landing/custom-cursor";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-display",
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-body",
+const syncopate = Syncopate({
+  variable: "--font-display-tech",
   subsets: ["latin"],
+  weight: ["400", "700"],
   display: "swap",
 });
 
@@ -36,7 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable}`}
+        className={`${plusJakartaSans.variable} ${syncopate.variable} ${ibmPlexMono.variable}`}
       >
         <CustomCursor />
         {children}

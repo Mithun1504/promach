@@ -153,6 +153,7 @@ export function HorizontalCapabilities() {
 
   return (
     <section ref={sectionRef} className="horizontal-capabilities" id="capabilities">
+      <div className="interactive-cyber-grid" aria-hidden="true" />
       <div className="horizontal-capabilities__header">
         <div>
           <span className="section-kicker">Capability Matrix</span>

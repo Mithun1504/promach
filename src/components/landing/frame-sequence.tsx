@@ -366,7 +366,10 @@ export function FrameSequence({
           current === chapterIndex ? current : chapterIndex,
         );
 
-        // Transform layout dynamically on scroll progression (scale/rotate)
+        // Calculate continuous exit progress (0 to 1) when scroll progress is between 0.8 and 1.0
+        const exitProgress = Math.max(0, (self.progress - 0.8) / 0.2);
+        section.style.setProperty("--exit-progress", String(exitProgress));
+
         if (self.progress > 0.8) {
           section.classList.add("frame-sequence--transform-active");
         } else {
@@ -419,21 +422,31 @@ export function FrameSequence({
     };
   }, [drawFrame]);
 
-  // Splits headers into bouncy, spring-loaded letters
+  // Splits headers into bouncy, spring-loaded letters, wrapping words to prevent awkward line breaks
   const renderSplitTitle = (title: string, isActive: boolean) => {
     return title.split("\n").map((line, lineIndex) => (
-      <div key={lineIndex} className="char-container">
-        {line.split("").map((char, charIndex) => (
-          <span
-            key={charIndex}
-            className="char-unit"
-            style={{
-              animationDelay: isActive
-                ? `${(lineIndex * 10 + charIndex) * 16}ms`
-                : "0ms",
-            }}
-          >
-            {char === " " ? "\u00A0" : char}
+      <div key={lineIndex} className="line-container">
+        {line.split(" ").map((word, wordIndex, wordsArray) => (
+          <span key={wordIndex} className="word-container">
+            {word.split("").map((char, charIndex) => {
+              const prevWordsCharCount = wordsArray
+                .slice(0, wordIndex)
+                .reduce((acc, w) => acc + w.length, 0);
+              const charDelayIndex = prevWordsCharCount + charIndex;
+              return (
+                <span
+                  key={charIndex}
+                  className="char-unit"
+                  style={{
+                    animationDelay: isActive
+                      ? `${(lineIndex * 12 + charDelayIndex) * 16}ms`
+                      : "0ms",
+                  }}
+                >
+                  {char}
+                </span>
+              );
+            })}
           </span>
         ))}
       </div>

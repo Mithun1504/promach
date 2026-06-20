@@ -11,7 +11,7 @@ import {
 import { SmoothScrollProvider } from "./smooth-scroll-provider";
 import { SparkField } from "./spark-field";
 import { GearTransferSection } from "./gear-transfer-section";
-import { CncMachineExplorer } from "./cnc-machine-explorer";
+// import { CncMachineExplorer } from "./cnc-machine-explorer";
 import { HorizontalCapabilities } from "./horizontal-capabilities";
 import { BallContinuation } from "./ball-continuation";
 
@@ -206,18 +206,28 @@ function SplitTitle({ title, isActive = true }: { title: string; isActive?: bool
   return (
     <>
       {title.split("\n").map((line, lineIndex) => (
-        <div key={lineIndex} className="char-container block">
-          {line.split("").map((char, charIndex) => (
-            <span
-              key={charIndex}
-              className="char-unit"
-              style={{
-                animationDelay: isActive
-                  ? `${(lineIndex * 12 + charIndex) * 16}ms`
-                  : "0ms",
-              }}
-            >
-              {char === " " ? "\u00A0" : char}
+        <div key={lineIndex} className="line-container block">
+          {line.split(" ").map((word, wordIndex, wordsArray) => (
+            <span key={wordIndex} className="word-container">
+              {word.split("").map((char, charIndex) => {
+                const prevWordsCharCount = wordsArray
+                  .slice(0, wordIndex)
+                  .reduce((acc, w) => acc + w.length, 0);
+                const charDelayIndex = prevWordsCharCount + charIndex;
+                return (
+                  <span
+                    key={charIndex}
+                    className="char-unit"
+                    style={{
+                      animationDelay: isActive
+                        ? `${(lineIndex * 12 + charDelayIndex) * 16}ms`
+                        : "0ms",
+                    }}
+                  >
+                    {char}
+                  </span>
+                );
+              })}
             </span>
           ))}
         </div>
@@ -287,6 +297,7 @@ function Navigation() {
 function IndustriesSection() {
   return (
     <section className="industries-section" id="industries">
+      <div className="interactive-cyber-grid" aria-hidden="true" />
       <span className="section-kicker">Industries</span>
       <h2>Built for environments where failure is not an option.</h2>
       <div className="industries-section__list">
@@ -563,7 +574,7 @@ export function LandingPage() {
           <SparkField />
         </FrameSequence>
 
-        <CncMachineExplorer />
+        {/* <CncMachineExplorer /> */}
         <HorizontalCapabilities />
         <IndustriesSection />
         <MetricsSection />

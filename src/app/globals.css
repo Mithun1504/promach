@@ -7,6 +7,11 @@
   --foreground: #f3f6fa;
   --muted: #8c9ba5;
   
+  /* Fonts */
+  --font-body: var(--font-sans);
+  --font-display: var(--font-sans);
+  --font-display-tech: var(--font-display-tech);
+
   /* Cyber Blue / Cyan */
   --color-cyber: #00f0ff;
   --color-cyber-glow: rgba(0, 240, 255, 0.3);
@@ -92,15 +97,18 @@ button {
   transform: translate(-50%, -50%);
   transform-origin: center center;
   box-shadow: 0 0 16px var(--theme-primary-glow);
+  mix-blend-mode: screen;
+  background-color: transparent;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), height 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .custom-cursor__follower.is-hovering {
-  background-color: rgba(255, 255, 255, 0.04);
+  background-color: transparent;
   border-color: var(--theme-primary);
   backdrop-filter: none;
-  width: 56px;
-  height: 56px;
-  box-shadow: 0 0 20px var(--theme-primary-glow);
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 0 14px var(--theme-primary-glow);
 }
 
 /* Page wrapper containing the dynamic theme gradients */
@@ -167,10 +175,10 @@ button {
   align-items: center;
   gap: 12px;
   color: var(--theme-primary);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-family: var(--font-display-tech), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   transition: color 0.4s ease;
 }
@@ -192,7 +200,7 @@ button {
   display: grid;
   width: min(1200px, calc(100% - 32px));
   height: 68px;
-  grid-template-columns: 180px 1fr 160px;
+  grid-template-columns: 180px 1fr auto;
   align-items: center;
   padding: 0 28px;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -229,11 +237,11 @@ button {
   justify-content: center;
   gap: 36px;
   color: rgba(243, 246, 250, 0.75);
-  font-family: var(--font-mono), monospace;
-  font-size: 0.76rem;
-  font-weight: 500;
+  font-family: var(--font-display-tech), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.12em;
 }
 
 .site-nav__links a {
@@ -266,14 +274,15 @@ button {
 
 .site-nav__cta {
   justify-self: end;
-  padding: 10px 20px;
+  padding: 10px 24px;
   border-radius: 999px;
   background: var(--theme-primary);
   color: #000000;
-  font-family: var(--font-mono), monospace;
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--font-display-tech), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap; /* Prevent Request Quote from wrapping */
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -309,15 +318,41 @@ button {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.6s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s ease, opacity 0.4s ease;
 }
 
-/* Used for scaling down sequences as we scroll past */
+/* Used for scaling down sequences as we scroll past using scroll-driven variables */
 .frame-sequence--transform-active .frame-sequence__canvas-wrapper {
-  transform: scale(0.8) rotate(-1deg);
-  border-radius: 36px;
-  border: 1px solid var(--line);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px var(--theme-primary-glow);
+  transform: 
+    scale(calc(1 - (var(--exit-progress, 0) * 0.12))) 
+    translateY(calc(var(--exit-progress, 0) * -60px));
+  opacity: calc(1 - (var(--exit-progress, 0) * 0.8));
+  border-radius: calc(var(--exit-progress, 0) * 40px);
+  border: 1px solid rgba(255, 255, 255, calc(var(--exit-progress, 0) * 0.08));
+  box-shadow: 
+    0 calc(var(--exit-progress, 0) * 30px) calc(var(--exit-progress, 0) * 80px) rgba(0, 0, 0, 0.9), 
+    0 0 calc(var(--exit-progress, 0) * 60px) var(--theme-primary-glow);
+  mask-image: radial-gradient(
+    circle at 50% 50%, 
+    black calc(100% - (var(--exit-progress, 0) * 55%)), 
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%, 
+    black calc(100% - (var(--exit-progress, 0) * 55%)), 
+    transparent 100%
+  );
+}
+
+/* Smoothly hide text when sequence exits */
+.frame-sequence--transform-active .frame-copy {
+  opacity: 0 !important;
+  transform: translate(0, -60%) !important;
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.frame-sequence--transform-active .frame-copy--center {
+  transform: translate(-50%, -60%) !important;
 }
 
 .frame-sequence__canvas {
@@ -378,6 +413,24 @@ button {
   opacity: 0;
   transform: translateY(calc(-50% + 40px));
   transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  isolation: isolate; /* Create stacking context for the dark radial background */
+}
+
+.frame-copy::before {
+  content: "";
+  position: absolute;
+  inset: -60px -80px;
+  background: radial-gradient(circle, rgba(4, 5, 8, 0.82) 0%, rgba(4, 5, 8, 0) 70%);
+  pointer-events: none;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(16px);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.frame-copy.is-active::before {
+  opacity: 1;
 }
 
 .frame-copy.is-active {
@@ -410,22 +463,33 @@ button {
   font-family: var(--font-display), sans-serif;
   font-size: clamp(2.4rem, 6.5vw, 5.2rem);
   font-weight: 800;
-  line-height: 0.92;
-  letter-spacing: -0.04em;
+  line-height: 1.18; /* Increased line-height to prevent overlapping text */
+  letter-spacing: -0.01em; /* Opened tracking to prevent congested text spacing */
   text-wrap: balance;
   white-space: pre-line;
+  text-shadow: 0 10px 40px rgba(0, 0, 0, 0.95), 0 0 20px rgba(0, 0, 0, 0.85);
 }
 
 /* Spring-loaded split character wrappers */
-.char-container {
+.line-container {
+  display: block;
+}
+
+.word-container {
   display: inline-block;
-  overflow: hidden;
-  vertical-align: bottom;
+  white-space: nowrap;
+  margin-right: 0.28em; /* Clean space between words to prevent congestion */
+}
+
+.word-container:last-child {
+  margin-right: 0;
 }
 
 .char-unit {
   display: inline-block;
-  transform: translateY(105%);
+  transform: translateY(105%) scaleY(1.4) rotate(4deg);
+  opacity: 0;
+  transform-origin: bottom center;
 }
 
 .is-active .char-unit {
@@ -442,6 +506,7 @@ button {
   opacity: 0;
   transform: translateY(20px);
   transition: opacity 0.6s ease 0.3s, transform 0.6s ease 0.3s;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
 }
 
 .is-active p {
@@ -488,13 +553,40 @@ button {
   position: absolute;
   inset: 8% 4%;
   border-radius: 36px;
-  border: 1px solid rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 74px 74px;
   mask-image: radial-gradient(circle at 70% 50%, black 0 32%, transparent 73%);
+  -webkit-mask-image: radial-gradient(circle at 70% 50%, black 0 32%, transparent 73%);
   pointer-events: none;
+  overflow: hidden;
+}
+
+/* Light beams passing through lines (animated scanning lasers) */
+.gear-transfer__bay-grid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--theme-primary), transparent);
+  box-shadow: 0 0 14px var(--theme-primary), 0 0 6px var(--theme-primary);
+  opacity: 0.8;
+  animation: cyber-grid-beam-x 8s infinite linear;
+}
+
+.gear-transfer__bay-grid::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--theme-primary), transparent);
+  box-shadow: 0 0 14px var(--theme-primary), 0 0 6px var(--theme-primary);
+  opacity: 0.8;
+  animation: cyber-grid-beam-y 12s infinite linear;
 }
 
 .gear-transfer__copy {
@@ -1219,6 +1311,7 @@ button {
 
 /* Industries Hover-Grid Sections */
 .industries-section {
+  position: relative; /* Set to relative so grid lines position correctly */
   min-height: 100vh;
   padding: 140px max(32px, calc((100vw - 1200px) / 2));
   background: var(--surface);
@@ -1310,18 +1403,33 @@ button {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.3;
+  opacity: 0.7; /* Increased opacity for visible grid lines */
+  overflow: hidden;
 }
 
 .metrics-section__blueprint::before {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, var(--theme-primary-glow) 1px, transparent 1px),
-    linear-gradient(var(--theme-primary-glow) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
   background-size: 60px 60px;
   content: "";
   mask-image: radial-gradient(circle, black 30%, transparent 80%);
+  -webkit-mask-image: radial-gradient(circle, black 30%, transparent 80%);
+}
+
+/* Light beams passing through lines (animated scanning lasers) */
+.metrics-section__blueprint::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--theme-primary), transparent);
+  box-shadow: 0 0 14px var(--theme-primary), 0 0 6px var(--theme-primary);
+  opacity: 0.8;
+  animation: cyber-grid-beam-x 9s infinite linear;
 }
 
 .metrics-section__blueprint span {
@@ -1426,14 +1534,30 @@ button {
 .final-cta__blueprint {
   position: absolute;
   inset: 8% max(28px, calc((100vw - 1220px) / 2));
-  border: 1px solid rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08); /* Increased visibility */
   border-radius: 40px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
   background-size: 76px 76px;
   pointer-events: none;
   mask-image: linear-gradient(90deg, black, transparent 82%);
+  -webkit-mask-image: linear-gradient(90deg, black, transparent 82%);
+  overflow: hidden;
+}
+
+/* Light beams passing through lines (animated scanning lasers) */
+.final-cta__blueprint::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--theme-primary), transparent);
+  box-shadow: 0 0 14px var(--theme-primary), 0 0 6px var(--theme-primary);
+  opacity: 0.8;
+  animation: cyber-grid-beam-x 11s infinite linear;
+  z-index: 1;
 }
 
 .final-cta__blueprint span {
@@ -1748,11 +1872,73 @@ button {
 }
 
 @keyframes char-slide-up {
-  from {
-    transform: translateY(105%);
+  0% {
+    transform: translateY(105%) scaleY(1.4) rotate(4deg);
+    opacity: 0;
   }
-  to {
-    transform: translateY(0);
+  60% {
+    transform: translateY(-8%) scaleY(0.9) rotate(-1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scaleY(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Shared Animated grid lines and light beams utility */
+.interactive-cyber-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 80px 80px;
+  z-index: 0;
+  overflow: hidden;
+  opacity: 0.75;
+}
+
+.interactive-cyber-grid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, var(--theme-primary), transparent);
+  box-shadow: 0 0 14px var(--theme-primary), 0 0 6px var(--theme-primary);
+  opacity: 0.8;
+  animation: cyber-grid-beam-x 7s infinite linear;
+}
+
+.interactive-cyber-grid::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--theme-primary), transparent);
+  box-shadow: 0 0 14px var(--theme-primary), 0 0 6px var(--theme-primary);
+  opacity: 0.8;
+  animation: cyber-grid-beam-y 10s infinite linear;
+}
+
+@keyframes cyber-grid-beam-x {
+  0% {
+    left: -5%;
+  }
+  100% {
+    left: 105%;
+  }
+}
+
+@keyframes cyber-grid-beam-y {
+  0% {
+    top: -5%;
+  }
+  100% {
+    top: 105%;
   }
 }
 

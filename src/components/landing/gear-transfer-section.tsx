@@ -71,21 +71,27 @@ export function GearTransferSection() {
   }, []);
 
   const renderSplitTitle = (title: string, isActive: boolean) => {
-    return title.split(" ").map((word, wordIndex) => (
-      <span key={wordIndex} className="char-container mr-2.5">
-        {word.split("").map((char, charIndex) => (
-          <span
-            key={charIndex}
-            className="char-unit"
-            style={{
-              animationDelay: isActive
-                ? `${(wordIndex * 6 + charIndex) * 16}ms`
-                : "0ms",
-            }}
-          >
-            {char}
-          </span>
-        ))}
+    return title.split(" ").map((word, wordIndex, wordsArray) => (
+      <span key={wordIndex} className="word-container">
+        {word.split("").map((char, charIndex) => {
+          const prevWordsCharCount = wordsArray
+            .slice(0, wordIndex)
+            .reduce((acc, w) => acc + w.length, 0);
+          const charDelayIndex = prevWordsCharCount + charIndex;
+          return (
+            <span
+              key={charIndex}
+              className="char-unit"
+              style={{
+                animationDelay: isActive
+                  ? `${charDelayIndex * 16}ms`
+                  : "0ms",
+              }}
+            >
+              {char}
+            </span>
+          );
+        })}
       </span>
     ));
   };
