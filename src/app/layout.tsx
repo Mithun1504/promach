@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Inter, Space_Grotesk } from "next/font/google";
+import { CustomCursor } from "@/components/landing/custom-cursor";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -37,8 +38,10 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} ${ibmPlexMono.variable}`}
       >
+        <CustomCursor />
         {children}
       </body>
     </html>
   );
 }
+

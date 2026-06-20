@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   FrameSequence,
   type FrameChapter,
   type FrameSequenceConfig,
-} from "@/components/landing/frame-sequence";
-import { SmoothScrollProvider } from "@/components/landing/smooth-scroll-provider";
-import { SparkField } from "@/components/landing/spark-field";
-import { GearTransferSection } from "@/components/landing/gear-transfer-section";
-import { CncMachineExplorer } from "@/components/landing/cnc-machine-explorer";
-import { HorizontalCapabilities } from "@/components/landing/horizontal-capabilities";
-import { BallContinuation } from "@/components/landing/ball-continuation";
+} from "./frame-sequence";
+import { SmoothScrollProvider } from "./smooth-scroll-provider";
+import { SparkField } from "./spark-field";
+import { GearTransferSection } from "./gear-transfer-section";
+import { CncMachineExplorer } from "./cnc-machine-explorer";
+import { HorizontalCapabilities } from "./horizontal-capabilities";
+import { BallContinuation } from "./ball-continuation";
+
+gsap.registerPlugin(ScrollTrigger);
 
 const frameSequences = {
   hero: {
@@ -56,28 +60,24 @@ const heroChapters: FrameChapter[] = [
     title: "PRECISION\nENGINEERED\nWITHOUT COMPROMISE",
     copy: "Advanced CNC Manufacturing For Complex Components",
     align: "left",
-    variant: "wide",
   },
   {
     from: 61,
     to: 120,
     title: "Every Component\nHas A Purpose",
     align: "left",
-    variant: "stacked",
   },
   {
     from: 121,
     to: 180,
     title: "Thousands Of Movements.\nOne Precise Outcome.",
     align: "center",
-    variant: "wide",
   },
   {
     from: 181,
     to: 240,
     title: "Engineering\nIn Perfect Harmony",
     align: "right",
-    variant: "stacked",
   },
   {
     from: 241,
@@ -85,7 +85,6 @@ const heroChapters: FrameChapter[] = [
     title: "Built For Precision.\nTrusted For Production.",
     copy: "We do not simply manufacture components. We engineer precision.",
     align: "left",
-    variant: "wide",
   },
 ];
 
@@ -108,14 +107,12 @@ const insideChapters: FrameChapter[] = [
     to: 220,
     title: "Motion\nControl\nAccuracy",
     align: "right",
-    variant: "data",
   },
   {
     from: 221,
     to: 300,
     title: "Engineered\nFrom The Inside Out",
     align: "left",
-    variant: "wide",
   },
 ];
 
@@ -132,21 +129,18 @@ const materialChapters: FrameChapter[] = [
     to: 150,
     title: "Cut\nShape\nRefine",
     align: "center",
-    variant: "data",
   },
   {
     from: 151,
     to: 240,
     title: "Repeatable\nAccurate\nControlled",
     align: "right",
-    variant: "data",
   },
   {
     from: 241,
     to: 300,
     title: "Complexity\nMade Repeatable",
     align: "left",
-    variant: "wide",
   },
 ];
 
@@ -163,7 +157,6 @@ const finishingChapters: FrameChapter[] = [
     to: 200,
     title: "Microns Matter",
     align: "center",
-    variant: "wide",
   },
   {
     from: 201,
@@ -176,7 +169,6 @@ const finishingChapters: FrameChapter[] = [
     to: 300,
     title: "Finished Beyond\nSpecification",
     align: "left",
-    variant: "wide",
   },
 ];
 
@@ -203,6 +195,30 @@ const metrics = [
   { label: "Development Path", value: "Rapid Prototyping" },
   { label: "Build Scope", value: "Custom Manufacturing" },
 ];
+
+function SplitTitle({ title, isActive = true }: { title: string; isActive?: boolean }) {
+  return (
+    <>
+      {title.split("\n").map((line, lineIndex) => (
+        <div key={lineIndex} className="char-container block">
+          {line.split("").map((char, charIndex) => (
+            <span
+              key={charIndex}
+              className="char-unit"
+              style={{
+                animationDelay: isActive
+                  ? `${(lineIndex * 12 + charIndex) * 16}ms`
+                  : "0ms",
+              }}
+            >
+              {char === " " ? "\u00A0" : char}
+            </span>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
 
 function useFramePreloader() {
   const preloadUrls = useMemo(() => {
@@ -304,22 +320,47 @@ function MetricsSection() {
 }
 
 function FinalCta() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return undefined;
+
+    const trigger = ScrollTrigger.create({
+      trigger: el,
+      start: "top 72%",
+      onEnter: () => setActive(true),
+    });
+
+    return () => trigger.kill();
+  }, []);
+
   return (
-    <section className="final-cta" id="contact">
+    <section ref={sectionRef} className={`final-cta ${active ? "is-active" : ""}`} id="contact">
       <div>
         <span className="section-kicker">Project Review</span>
         <h2>
-          Let&apos;s Build
-          <br />
-          The Next Component
-          <br />
-          Together.
+          <SplitTitle
+            title={"Let's Build\nThe Next Component\nTogether."}
+            isActive={active}
+          />
         </h2>
+        
+        {/* Holographic Diagnostic Panel */}
+        <div className="font-mono text-[10px] text-[var(--theme-primary)] flex flex-col gap-1 tracking-wider mt-12 bg-black/60 p-5 rounded-2xl border border-[var(--line)] backdrop-blur-md max-w-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-primary)] animate-pulse" />
+            <span className="font-bold text-[11px] text-white">INQUIRY GATEWAY: ACTIVE</span>
+          </div>
+          <div>ENDPOINT: SMTP://projects@promach.example</div>
+          <div>PROTOCOL: SECURE SSL/TLS</div>
+          <div>QUEUE CAPACITY: 24/7 LIVE</div>
+        </div>
       </div>
       <div className="final-cta__side">
         <p>
-          Precision Manufacturing. Advanced CNC Technology. Engineering
-          Excellence.
+          Let&apos;s align on geometric parameters, material selection, quality inspection paths, and production timeline requirements.
         </p>
         <a href="mailto:projects@promach.example">Request A Quote</a>
       </div>
@@ -330,26 +371,30 @@ function FinalCta() {
 function Footer() {
   return (
     <footer className="site-footer">
-      <div className="site-footer__brand">
+      <div className="absolute inset-0 bg-gradient-to-b from-[#040508] to-[#080b12] pointer-events-none z-0 opacity-80" />
+      <div className="site-footer__brand z-10">
         <a href="#top">
           <span>PRO</span>MACH
         </a>
-        <p>We engineer precision.</p>
+        <p className="mt-2 text-sm text-[var(--muted)]">We engineer precision.</p>
+        <div className="mt-6 text-[10px] font-mono text-[var(--theme-primary)]/70 uppercase tracking-widest">
+          SYSTEMS INITIATED // OK_2026
+        </div>
       </div>
-      <div>
+      <div className="z-10">
         <h3>Engineering Consultation</h3>
         <a href="mailto:engineering@promach.example">engineering@promach.example</a>
       </div>
-      <div>
+      <div className="z-10">
         <h3>Project Discussion</h3>
         <a href="mailto:projects@promach.example">projects@promach.example</a>
       </div>
-      <div>
+      <div className="z-10">
         <h3>Connect</h3>
         <a href="#contact">Request Quote</a>
         <a href="#capabilities">Capabilities</a>
       </div>
-      <small>Copyright 2026 ProMach. Precision CNC Manufacturing.</small>
+      <small className="z-10">Copyright 2026 ProMach. Precision CNC Manufacturing.</small>
     </footer>
   );
 }
@@ -357,45 +402,141 @@ function Footer() {
 export function LandingPage() {
   useFramePreloader();
 
+  useEffect(() => {
+    const sequences = document.querySelectorAll(".frame-sequence, .gear-transfer, .machine-explorer, .horizontal-capabilities, .industries-section, .metrics-section, .final-cta");
+    const colors = [
+      {
+        primary: "#00f0ff", // Cyber Cyan
+        primaryGlow: "rgba(0, 240, 255, 0.25)",
+        secondary: "#b800ff",
+        bg: "radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.12) 0%, #040508 100%)",
+        line: "rgba(0, 240, 255, 0.12)"
+      },
+      {
+        primary: "#ff7300", // Solar Orange
+        primaryGlow: "rgba(255, 115, 0, 0.25)",
+        secondary: "#00f0ff",
+        bg: "radial-gradient(circle at 50% 50%, rgba(255, 115, 0, 0.12) 0%, #040508 100%)",
+        line: "rgba(255, 115, 0, 0.12)"
+      },
+      {
+        primary: "#b800ff", // Ultra Purple
+        primaryGlow: "rgba(184, 0, 255, 0.25)",
+        secondary: "#b3ff00",
+        bg: "radial-gradient(circle at 50% 50%, rgba(184, 0, 255, 0.12) 0%, #040508 100%)",
+        line: "rgba(184, 0, 255, 0.12)"
+      },
+      {
+        primary: "#b3ff00", // Acid Green
+        primaryGlow: "rgba(179, 255, 0, 0.25)",
+        secondary: "#ff7300",
+        bg: "radial-gradient(circle at 50% 50%, rgba(179, 255, 0, 0.12) 0%, #040508 100%)",
+        line: "rgba(179, 255, 0, 0.12)"
+      },
+      {
+        primary: "#00f0ff", // Cyber Cyan fallback
+        primaryGlow: "rgba(0, 240, 255, 0.25)",
+        secondary: "#b800ff",
+        bg: "radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.12) 0%, #040508 100%)",
+        line: "rgba(0, 240, 255, 0.12)"
+      },
+      {
+        primary: "#ff7300", // Solar Orange fallback
+        primaryGlow: "rgba(255, 115, 0, 0.25)",
+        secondary: "#00f0ff",
+        bg: "radial-gradient(circle at 50% 50%, rgba(255, 115, 0, 0.12) 0%, #040508 100%)",
+        line: "rgba(255, 115, 0, 0.12)"
+      },
+      {
+        primary: "#b800ff", // Ultra Purple fallback
+        primaryGlow: "rgba(184, 0, 255, 0.25)",
+        secondary: "#b3ff00",
+        bg: "radial-gradient(circle at 50% 50%, rgba(184, 0, 255, 0.12) 0%, #040508 100%)",
+        line: "rgba(184, 0, 255, 0.12)"
+      }
+    ];
+
+    const ctx = gsap.context(() => {
+      sequences.forEach((element, index) => {
+        const theme = colors[index] || colors[0];
+
+        ScrollTrigger.create({
+          trigger: element,
+          start: "top 55%",
+          end: "bottom 45%",
+          onToggle: (self) => {
+            if (self.isActive) {
+              gsap.to(":root", {
+                "--theme-primary": theme.primary,
+                "--theme-primary-glow": theme.primaryGlow,
+                "--theme-secondary": theme.secondary,
+                "--theme-bg-gradient": theme.bg,
+                "--line": theme.line,
+                duration: 0.72,
+                ease: "power2.out",
+              });
+            }
+          },
+        });
+      });
+    });
+
+    return () => {
+      ctx.revert();
+    };
+  }, []);
+
   return (
     <SmoothScrollProvider>
       <main className="promach-page">
+        {/* Floating Neon Background Ambient Glows */}
+        <div className="ambient-glow ambient-glow--1" aria-hidden="true" />
+        <div className="ambient-glow ambient-glow--2" aria-hidden="true" />
+        <div className="ambient-glow ambient-glow--3" aria-hidden="true" />
+        <div className="ambient-glow ambient-glow--4" aria-hidden="true" />
+
         <Navigation />
+
         <FrameSequence
           sectionId="top"
           config={frameSequences.hero}
           chapters={heroChapters}
           heightVh={500}
           className="hero-sequence"
-          darken={0.54}
+          darken={0.4}
         />
+
         <GearTransferSection />
         <BallContinuation />
+
         <FrameSequence
           config={frameSequences.inside}
           chapters={insideChapters}
           heightVh={400}
           className="inside-sequence"
-          darken={0.5}
+          darken={0.4}
           alignImage="right"
         />
+
         <FrameSequence
           config={frameSequences.material}
           chapters={materialChapters}
           heightVh={400}
           className="material-sequence"
-          darken={0.5}
+          darken={0.4}
         />
+
         <FrameSequence
           config={frameSequences.finishing}
           chapters={finishingChapters}
           heightVh={400}
           className="finishing-sequence"
-          darken={0.45}
+          darken={0.35}
           alignImage="left"
         >
           <SparkField />
         </FrameSequence>
+
         <CncMachineExplorer />
         <HorizontalCapabilities />
         <IndustriesSection />

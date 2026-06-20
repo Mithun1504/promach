@@ -360,12 +360,26 @@ export function FrameSequence({
 
         targetFrameRef.current = frame;
         section.dataset.currentFrame = String(frame);
-        section.dataset.scrollActive = self.progress > 0.012 ? "true" : "false";
         warmFrames(frame, config.priority ? 18 : 12);
 
         setActiveChapter((current) =>
           current === chapterIndex ? current : chapterIndex,
         );
+
+        // Transform layout dynamically on scroll progression (scale/rotate)
+        if (self.progress > 0.8) {
+          section.classList.add("frame-sequence--transform-active");
+        } else {
+          section.classList.remove("frame-sequence--transform-active");
+        }
+
+        // Apply physical momentum (skew/tilt) based on velocity
+        const stage = section.querySelector<HTMLElement>(".frame-sequence__stage");
+        if (stage) {
+          const rotation = Math.sin(self.progress * Math.PI) * 1.6;
+          const skewX = Math.sin(self.progress * Math.PI) * 0.8;
+          stage.style.transform = `rotate(${rotation}deg) skewX(${skewX}deg)`;
+        }
       },
     });
 
@@ -405,6 +419,27 @@ export function FrameSequence({
     };
   }, [drawFrame]);
 
+  // Splits headers into bouncy, spring-loaded letters
+  const renderSplitTitle = (title: string, isActive: boolean) => {
+    return title.split("\n").map((line, lineIndex) => (
+      <div key={lineIndex} className="char-container">
+        {line.split("").map((char, charIndex) => (
+          <span
+            key={charIndex}
+            className="char-unit"
+            style={{
+              animationDelay: isActive
+                ? `${(lineIndex * 10 + charIndex) * 16}ms`
+                : "0ms",
+            }}
+          >
+            {char === " " ? "\u00A0" : char}
+          </span>
+        ))}
+      </div>
+    ));
+  };
+
   return (
     <section
       ref={sectionRef}
@@ -419,27 +454,32 @@ export function FrameSequence({
       }
     >
       <div className="frame-sequence__stage">
-        <canvas ref={canvasRef} className="frame-sequence__canvas" />
-        <div className="frame-sequence__vignette" />
+        <div className="frame-sequence__canvas-wrapper">
+          <canvas ref={canvasRef} className="frame-sequence__canvas" />
+          <div className="frame-sequence__vignette" />
+        </div>
         <div className="frame-sequence__loader">
           <span />
           Loading calibrated frames
         </div>
         <div className="frame-sequence__chapters">
-          {chapters.map((chapter, index) => (
-            <div
-              key={`${chapter.title}-${chapter.from}`}
-              className={`frame-copy frame-copy--${chapter.align ?? "left"} frame-copy--${
-                chapter.variant ?? "stacked"
-              } ${index === activeChapter ? "is-active" : ""}`}
-            >
-              {chapter.kicker ? (
-                <span className="section-kicker">{chapter.kicker}</span>
-              ) : null}
-              <h2>{chapter.title}</h2>
-              {chapter.copy ? <p>{chapter.copy}</p> : null}
-            </div>
-          ))}
+          {chapters.map((chapter, index) => {
+            const isActive = index === activeChapter;
+            return (
+              <div
+                key={`${chapter.title}-${chapter.from}`}
+                className={`frame-copy frame-copy--${chapter.align ?? "left"} frame-copy--${
+                  chapter.variant ?? "stacked"
+                } ${isActive ? "is-active" : ""}`}
+              >
+                {chapter.kicker ? (
+                  <span className="section-kicker">{chapter.kicker}</span>
+                ) : null}
+                <h2>{renderSplitTitle(chapter.title, isActive)}</h2>
+                {chapter.copy ? <p>{chapter.copy}</p> : null}
+              </div>
+            );
+          })}
         </div>
         {children}
       </div>

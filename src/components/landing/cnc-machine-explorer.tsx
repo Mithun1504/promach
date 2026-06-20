@@ -1,36 +1,36 @@
 "use client";
 
 import { Canvas, useFrame, useLoader, useThree } from "@react-three/fiber";
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState, useEffect } from "react";
 import { Group, Mesh, MeshStandardMaterial } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const modelUrl = process.env.NEXT_PUBLIC_CNC_MODEL_URL;
+const modelUrl = process.env.NEXT_PUBLIC_CNC_MODEL_URL ?? "/models/cnc-machine.glb";
 
 const focusPoints = [
   {
     label: "Tool Changer",
     description: "Review tool exchange path, clearance, and repeatability.",
-    rotation: [0.08, -0.55, 0],
-    zoom: 8.4,
+    rotation: [0.15, -0.68, 0],
+    zoom: 4.2,
   },
   {
     label: "Motion Systems",
     description: "Inspect axis motion, guided travel, and machine envelope.",
-    rotation: [0.1, 0.28, 0],
-    zoom: 8.8,
+    rotation: [0.2, 0.4, 0],
+    zoom: 4.8,
   },
   {
     label: "Spindle",
     description: "Move into the cutting center where torque becomes geometry.",
-    rotation: [0.08, 0.72, 0],
-    zoom: 7.6,
+    rotation: [0.1, 0.95, 0],
+    zoom: 3.7,
   },
   {
     label: "Panel Access",
     description: "Open-view state for enclosure, service, and internal systems.",
-    rotation: [0.12, -0.9, 0],
-    zoom: 9.2,
+    rotation: [0.28, -1.15, 0],
+    zoom: 5.2,
   },
 ];
 
@@ -44,7 +44,7 @@ function CncModel({
   dragRotation: { x: number; y: number };
 }) {
   const groupRef = useRef<Group | null>(null);
-  const gltf = useLoader(GLTFLoader, modelUrl ?? "");
+  const gltf = useLoader(GLTFLoader, modelUrl);
   const { camera } = useThree();
 
   const scene = useMemo(() => {
@@ -56,8 +56,9 @@ function CncModel({
         object.receiveShadow = true;
 
         if (object.material instanceof MeshStandardMaterial) {
-          object.material.metalness = Math.max(object.material.metalness, 0.55);
-          object.material.roughness = Math.min(object.material.roughness, 0.42);
+          // Boost metallic reflectiveness to catch the cyber lights beautifully
+          object.material.metalness = 0.85;
+          object.material.roughness = 0.28;
         }
       }
     });
@@ -78,15 +79,46 @@ function CncModel({
     }
 
     camera.position.z += (focus.zoom - camera.position.z) * 0.06;
-    camera.position.y += (1.35 - camera.position.y) * 0.04;
     camera.lookAt(0, 0.1, 0);
-    state.scene.rotation.y = Math.sin(state.clock.elapsedTime * 0.18) * 0.025;
+    
+    // Slow cinematic hover oscillation
+    state.scene.rotation.y = Math.sin(state.clock.elapsedTime * 0.24) * 0.04;
   });
 
   return (
-    <group ref={groupRef} scale={0.82} position={[0, -0.7, 0]}>
+    <group ref={groupRef} scale={1.65} position={[0, -0.62, 0]}>
       <primitive object={scene} />
     </group>
+  );
+}
+
+function TelemetryOverlay() {
+  const [coords, setCoords] = useState({ x: 0, y: 0, z: 0 });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCoords({
+        x: Number((Math.random() * 100 - 50).toFixed(3)),
+        y: Number((Math.random() * 80 - 40).toFixed(3)),
+        z: Number((Math.random() * 30 - 15).toFixed(3)),
+      });
+    }, 180);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="absolute top-6 left-6 z-10 pointer-events-none font-mono text-[10px] text-[var(--theme-primary)] flex flex-col gap-1 tracking-wider bg-black/60 p-3 rounded border border-[var(--line)] backdrop-blur-sm">
+      <div className="flex items-center gap-2">
+        <span className="w-2 h-2 rounded-full bg-[var(--theme-primary)] animate-pulse" />
+        <span className="font-bold text-[11px] text-white">SYSTEM TELEMETRY</span>
+      </div>
+      <div>AXIS_X: {coords.x} mm</div>
+      <div>AXIS_Y: {coords.y} mm</div>
+      <div>AXIS_Z: {coords.z} mm</div>
+      <div>SPINDLE: 18,200 RPM</div>
+      <div>FEEDRATE: 4,500 MM/MIN</div>
+    </div>
   );
 }
 
@@ -97,7 +129,7 @@ function MachineCanvas({ focusIndex }: { focusIndex: FocusIndex }) {
 
   return (
     <div
-      className="machine-explorer__canvas"
+      className="machine-explorer__canvas relative"
       onPointerDown={(event) => {
         draggingRef.current = true;
         lastPointRef.current = { x: event.clientX, y: event.clientY };
@@ -123,21 +155,32 @@ function MachineCanvas({ focusIndex }: { focusIndex: FocusIndex }) {
         draggingRef.current = false;
       }}
     >
+      <TelemetryOverlay />
+      
       <Canvas
         shadows
         dpr={[1, 2]}
-        camera={{ position: [0, 1.35, 8.8], fov: 42 }}
+        camera={{ position: [0, 0.5, 4.6], fov: 36 }}
         gl={{ antialias: true, alpha: true }}
       >
-        <color attach="background" args={["#080b0f"]} />
-        <ambientLight intensity={0.9} />
+        <color attach="background" args={["#040508"]} />
+        
+        {/* Colorful Neon 3-Point Light Rig */}
+        <ambientLight intensity={0.65} />
         <directionalLight
           castShadow
-          position={[4, 6, 4]}
-          intensity={2.6}
+          position={[5, 8, 5]}
+          intensity={2.8}
+          color="#ffffff"
           shadow-mapSize={[2048, 2048]}
         />
-        <pointLight position={[-3, 2, 3]} intensity={1.1} color="#4f8cff" />
+        <pointLight position={[-4, 3, 4]} intensity={2.2} color="#00f0ff" /> {/* Cyan */}
+        <pointLight position={[4, -3, 3]} intensity={2.0} color="#ff7300" /> {/* Orange */}
+        <pointLight position={[0, 5, -3]} intensity={1.8} color="#b800ff" /> {/* Purple */}
+        
+        {/* Blueprint Holographic Helper Grid */}
+        <gridHelper args={[12, 12, "#00f0ff", "#1f2937"]} position={[0, -0.63, 0]} material-opacity={0.25} material-transparent={true} />
+        
         <Suspense fallback={null}>
           <CncModel focusIndex={focusIndex} dragRotation={dragRotation} />
         </Suspense>
@@ -155,8 +198,7 @@ export function CncMachineExplorer() {
         <span className="section-kicker">Interactive CNC Experience</span>
         <h2>Explore The Machine</h2>
         <p>
-          Engineering designed for precision manufacturing. Rotate, zoom, and
-          inspect critical systems when the production CNC model is connected.
+          Rotate, drag, and tap the focal triggers to explore critical tooling pathways, multi-axis guide configurations, and the high-torque cutting spindle envelope.
         </p>
       </div>
 
@@ -169,8 +211,7 @@ export function CncMachineExplorer() {
           <p>
             Add a compressed `.glb` or `.gltf` URL to
             `NEXT_PUBLIC_CNC_MODEL_URL`. The viewer is ready for rotation,
-            focus states, and system inspection without using fake placeholder
-            machinery.
+            focus states, and system inspection.
           </p>
         </div>
       )}

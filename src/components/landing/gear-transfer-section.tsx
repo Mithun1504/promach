@@ -33,14 +33,12 @@ function clamp(value: number, min: number, max: number) {
 export function GearTransferSection() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const gearRef = useRef<HTMLDivElement | null>(null);
-  const ballRef = useRef<HTMLDivElement | null>(null);
   const [activeMessage, setActiveMessage] = useState(0);
 
   useEffect(() => {
     const section = sectionRef.current;
     const gear = gearRef.current;
-    const ball = ballRef.current;
-    if (!section || !gear || !ball) return undefined;
+    if (!section || !gear) return undefined;
 
     const trigger = ScrollTrigger.create({
       trigger: section,
@@ -51,23 +49,12 @@ export function GearTransferSection() {
       onUpdate: (self) => {
         const progress = clamp(self.progress, 0, 1);
         const index = progress < 0.34 ? 0 : progress < 0.68 ? 1 : 2;
-        const dropProgress = clamp(progress / 0.28, 0, 1);
-        const easedDrop = 1 - (1 - dropProgress) ** 3;
 
         setActiveMessage((current) => (current === index ? current : index));
 
         gsap.set(gear, {
           rotate: progress * 780,
           scale: 0.96 + Math.sin(progress * Math.PI) * 0.055,
-        });
-
-        gsap.set(ball, {
-          xPercent: -50,
-          yPercent: -50,
-          y: -window.innerHeight * 0.58 * (1 - easedDrop),
-          scale: 0.7 + easedDrop * 0.3,
-          rotate: progress * 980,
-          opacity: clamp(progress / 0.08, 0, 1),
         });
 
         section.style.setProperty("--gear-progress", String(progress));
@@ -77,28 +64,50 @@ export function GearTransferSection() {
     return () => trigger.kill();
   }, []);
 
+  const renderSplitTitle = (title: string, isActive: boolean) => {
+    return title.split(" ").map((word, wordIndex) => (
+      <span key={wordIndex} className="char-container mr-2.5">
+        {word.split("").map((char, charIndex) => (
+          <span
+            key={charIndex}
+            className="char-unit"
+            style={{
+              animationDelay: isActive
+                ? `${(wordIndex * 6 + charIndex) * 16}ms`
+                : "0ms",
+            }}
+          >
+            {char}
+          </span>
+        ))}
+      </span>
+    ));
+  };
+
   return (
     <section
       ref={sectionRef}
-      className="gear-transfer"
+      className="gear-transfer animate-section"
       aria-label="Gear transfer sequence"
     >
       <div className="gear-transfer__stage">
         <div className="gear-transfer__copy">
-          {messages.map((message, index) => (
-            <article
-              key={message.title}
-              className={index === activeMessage ? "is-active" : ""}
-            >
-              <span className="section-kicker">{message.kicker}</span>
-              <h2>{message.title}</h2>
-              <p>{message.copy}</p>
-            </article>
-          ))}
+          {messages.map((message, index) => {
+            const isActive = index === activeMessage;
+            return (
+              <article
+                key={message.title}
+                className={isActive ? "is-active" : ""}
+              >
+                <span className="section-kicker">{message.kicker}</span>
+                <h2>{renderSplitTitle(message.title, isActive)}</h2>
+                <p>{message.copy}</p>
+              </article>
+            );
+          })}
         </div>
 
         <div className="gear-transfer__visual" aria-hidden="true">
-          <div className="gear-transfer__drop-line" />
           <div ref={gearRef} className="gear-transfer__gear">
             <Image
               src={gearImage}
@@ -109,9 +118,6 @@ export function GearTransferSection() {
               className="gear-transfer__gear-image"
             />
             <div className="gear-transfer__gear-hole" />
-          </div>
-          <div ref={ballRef} className="gear-transfer__ball">
-            <span />
           </div>
         </div>
       </div>

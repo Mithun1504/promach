@@ -11,26 +11,31 @@ const capabilities = [
     index: "01",
     title: "CNC Milling",
     detail: "Complex faces, pockets, slots, and contour geometry held under controlled setup conditions.",
+    color: "#00f0ff", // Cyan
   },
   {
     index: "02",
     title: "CNC Turning",
     detail: "Diameters, shoulders, threads, and precision fits made repeatable across production batches.",
+    color: "#ff7300", // Orange
   },
   {
     index: "03",
     title: "Grinding",
     detail: "Surface control for flatness, finish, and contact quality where final geometry matters.",
+    color: "#b800ff", // Purple
   },
   {
     index: "04",
     title: "Honing",
     detail: "Internal surfaces refined for fit, motion, fluid control, and verified functional performance.",
+    color: "#b3ff00", // Lime
   },
   {
     index: "05",
     title: "Complex Assemblies",
     detail: "Machined components planned around downstream assembly, inspection, and production continuity.",
+    color: "#00f0ff", // Cyan again
   },
 ];
 
@@ -60,6 +65,7 @@ export function HorizontalCapabilities() {
         },
       });
 
+      // Expand card connector lines as they enter screen center
       gsap.fromTo(
         ".capability-card__line",
         { scaleX: 0 },
@@ -80,6 +86,40 @@ export function HorizontalCapabilities() {
     return () => ctx.revert();
   }, []);
 
+  // 3D holographic tilt card physics
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>, cardColor: string) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    const rotateX = -(y / (rect.height / 2)) * 12;
+    const rotateY = (x / (rect.width / 2)) * 12;
+
+    gsap.to(card, {
+      rotateX,
+      rotateY,
+      transformPerspective: 1000,
+      ease: "power1.out",
+      duration: 0.25,
+      borderColor: cardColor,
+      boxShadow: `0 30px 60px rgba(0,0,0,0.5), 0 0 30px ${cardColor}4D`,
+    });
+  };
+
+  const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+    const card = e.currentTarget;
+    gsap.to(card, {
+      rotateX: 0,
+      rotateY: 0,
+      transformPerspective: 1000,
+      ease: "power2.out",
+      duration: 0.5,
+      borderColor: "rgba(255, 255, 255, 0.05)",
+      boxShadow: "0 24px 60px rgba(0, 0, 0, 0.3)",
+    });
+  };
+
   return (
     <section ref={sectionRef} className="horizontal-capabilities" id="capabilities">
       <div className="horizontal-capabilities__header">
@@ -88,7 +128,17 @@ export function HorizontalCapabilities() {
       </div>
       <div ref={railRef} className="horizontal-capabilities__rail">
         {capabilities.map((item) => (
-          <article key={item.title} className="capability-card">
+          <article
+            key={item.title}
+            className="capability-card"
+            style={{
+              // Apply unique variable colors
+              "--theme-primary": item.color,
+              "--theme-primary-glow": `${item.color}3F`,
+            } as React.CSSProperties}
+            onMouseMove={(e) => handleMouseMove(e, item.color)}
+            onMouseLeave={handleMouseLeave}
+          >
             <span>{item.index}</span>
             <div className="capability-card__line" />
             <h3>{item.title}</h3>
