@@ -14,6 +14,8 @@ import {
 
 gsap.registerPlugin(ScrollTrigger);
 
+export const globalFrameCache = new Map<string, HTMLImageElement>();
+
 export type FrameSequenceConfig = {
   id: string;
   folder: string;
@@ -248,6 +250,18 @@ export function FrameSequence({
       const cached = cacheRef.current.get(nextFrame);
       if (cached?.image || cached?.loading || cached?.failed) continue;
 
+      // Check global preloaded cache
+      const url = frameUrl(nextFrame);
+      const preloadedImg = globalFrameCache.get(url);
+      if (preloadedImg) {
+        cacheRef.current.set(nextFrame, { image: preloadedImg });
+        if (nextFrame === firstFrame) {
+          sectionRef.current?.setAttribute("data-first-frame-ready", "true");
+        }
+        drawFrame(Math.round(displayFrameRef.current));
+        continue;
+      }
+
       const image = new Image();
       activeLoadsRef.current += 1;
       cacheRef.current.set(nextFrame, { loading: true });
@@ -276,7 +290,7 @@ export function FrameSequence({
         pumpQueue();
       };
 
-      image.src = frameUrl(nextFrame);
+      image.src = url;
     }
   }, [config.priority, drawFrame, firstFrame, frameUrl, setLoadedCount]);
 
@@ -286,6 +300,18 @@ export function FrameSequence({
       const cached = cacheRef.current.get(safeFrame);
 
       if (cached?.image || cached?.loading || cached?.failed) return;
+
+      // Check global preloaded cache
+      const url = frameUrl(safeFrame);
+      const preloadedImg = globalFrameCache.get(url);
+      if (preloadedImg) {
+        cacheRef.current.set(safeFrame, { image: preloadedImg });
+        if (safeFrame === firstFrame) {
+          sectionRef.current?.setAttribute("data-first-frame-ready", "true");
+        }
+        drawFrame(Math.round(displayFrameRef.current));
+        return;
+      }
 
       if (queuedSetRef.current.has(safeFrame)) {
         if (priority) {
@@ -314,7 +340,7 @@ export function FrameSequence({
 
       pumpQueue();
     },
-    [firstFrame, lastFrame, pumpQueue],
+    [firstFrame, lastFrame, pumpQueue, frameUrl, drawFrame],
   );
 
   const warmFrames = useCallback(

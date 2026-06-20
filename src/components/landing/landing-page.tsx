@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
   FrameSequence,
   type FrameChapter,
   type FrameSequenceConfig,
+  globalFrameCache,
 } from "./frame-sequence";
 import { SmoothScrollProvider } from "./smooth-scroll-provider";
 import { SparkField } from "./spark-field";
@@ -236,31 +237,58 @@ function SplitTitle({ title, isActive = true }: { title: string; isActive?: bool
   );
 }
 
-function useFramePreloader() {
-  const preloadUrls = useMemo(() => {
-    const sequences = Object.values(frameSequences);
+function Preloader({ progress, active }: { progress: number; active: boolean }) {
+  const radius = 80;
+  const strokeWidth = 3;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-    return sequences.flatMap((sequence) =>
-      [1, 2, 3, 24, 48, 72].map((frame) => {
-        const file = `${String(frame).padStart(sequence.padLength, "0")}.${
-          sequence.extension
-        }`;
-        const base =
-          process.env.NEXT_PUBLIC_S3_FRAMES_URL || '';
-        return `${base.replace(/\/$/, "")}/${sequence.folder}/${file}`;
-      }),
-    );
-  }, []);
+  return (
+    <div className={`preloader-overlay ${!active ? "is-loaded" : ""}`} aria-hidden={!active}>
+      <div className="preloader-grid" aria-hidden="true" />
+      <div className="preloader-content">
+        <div className="preloader-ring-wrapper">
+          <svg className="preloader-ring-svg" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="preloader-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#00f0ff" />
+                <stop offset="100%" stopColor="#b800ff" />
+              </linearGradient>
+            </defs>
+            <circle
+              className="preloader-ring-bg"
+              cx="100"
+              cy="100"
+              r={radius}
+              stroke="rgba(255, 255, 255, 0.03)"
+              strokeWidth={strokeWidth}
+              fill="transparent"
+            />
+            <circle
+              className="preloader-ring-fill"
+              cx="100"
+              cy="100"
+              r={radius}
+              stroke="url(#preloader-gradient)"
+              strokeWidth={strokeWidth}
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              fill="transparent"
+              transform="rotate(-90 100 100)"
+            />
+          </svg>
 
-  useEffect(() => {
-    preloadUrls.forEach((url, index) => {
-      window.setTimeout(() => {
-        const image = new Image();
-        image.decoding = "async";
-        image.src = url;
-      }, index * 30);
-    });
-  }, [preloadUrls]);
+          <div className="preloader-brand-container">
+            <div className="preloader-brand">
+              <span>PRO</span>MACH
+            </div>
+            <div className="preloader-value">{progress}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Navigation() {
@@ -436,7 +464,118 @@ function Footer() {
 }
 
 export function LandingPage() {
-  useFramePreloader();
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [showPreloader, setShowPreloader] = useState(true);
+
+  useEffect(() => {
+    // Prevent scrolling during preloader phase
+    document.documentElement.classList.add("no-scroll");
+    document.body.classList.add("no-scroll");
+
+    const urls: { url: string; folder: string }[] = [];
+    const sequences = Object.values(frameSequences);
+    
+    sequences.forEach((seq) => {
+      for (let i = 1; i <= seq.frameCount; i++) {
+        const padFrame = String(i).padStart(seq.padLength, "0");
+        const file = `${padFrame}.${seq.extension}`;
+        const base = process.env.NEXT_PUBLIC_S3_FRAMES_URL || "https://promach.s3.ap-south-1.amazonaws.com";
+        const url = `${base.replace(/\/$/, "")}/${seq.folder}/${file}`;
+        urls.push({ url, folder: seq.folder });
+      }
+    });
+
+    const total = urls.length;
+    let loadedCount = 0;
+    let nextIndex = 0;
+    const concurrency = 24;
+
+    if (total === 0) {
+      setLoading(false);
+      setShowPreloader(false);
+      document.documentElement.classList.remove("no-scroll");
+      document.body.classList.remove("no-scroll");
+      return;
+    }
+
+    const runPreload = () => {
+      const loadNext = () => {
+        if (nextIndex >= total) return;
+        const currentIdx = nextIndex++;
+        const item = urls[currentIdx];
+
+        if (globalFrameCache.has(item.url)) {
+          loadedCount++;
+          const pct = Math.floor((loadedCount / total) * 100);
+          updateProgressState(pct);
+          if (loadedCount === total) {
+            handleComplete();
+          } else {
+            loadNext();
+          }
+          return;
+        }
+
+        const img = new Image();
+        img.decoding = "async";
+        
+        img.onload = () => {
+          globalFrameCache.set(item.url, img);
+          loadedCount++;
+          const pct = Math.floor((loadedCount / total) * 100);
+          updateProgressState(pct);
+
+          if (loadedCount === total) {
+            handleComplete();
+          } else {
+            loadNext();
+          }
+        };
+
+        img.onerror = () => {
+          loadedCount++;
+          const pct = Math.floor((loadedCount / total) * 100);
+          updateProgressState(pct);
+
+          if (loadedCount === total) {
+            handleComplete();
+          } else {
+            loadNext();
+          }
+        };
+
+        img.src = item.url;
+      };
+
+      for (let w = 0; w < Math.min(concurrency, total); w++) {
+        loadNext();
+      }
+    };
+
+    const updateProgressState = (pct: number) => {
+      setProgress(pct);
+    };
+
+    const handleComplete = () => {
+      setTimeout(() => {
+        setLoading(false);
+        setTimeout(() => {
+          setShowPreloader(false);
+          document.documentElement.classList.remove("no-scroll");
+          document.body.classList.remove("no-scroll");
+          ScrollTrigger.refresh(true);
+        }, 850);
+      }, 500);
+    };
+
+    runPreload();
+
+    return () => {
+      document.documentElement.classList.remove("no-scroll");
+      document.body.classList.remove("no-scroll");
+    };
+  }, []);
 
   useEffect(() => {
     const sequences = document.querySelectorAll(".frame-sequence, .gear-transfer, .machine-explorer, .horizontal-capabilities, .industries-section, .metrics-section, .final-cta");
@@ -523,8 +662,12 @@ export function LandingPage() {
   }, []);
 
   return (
-    <SmoothScrollProvider>
-      <main className="promach-page">
+    <>
+      {showPreloader && (
+        <Preloader progress={progress} active={loading} />
+      )}
+      <SmoothScrollProvider isLocked={loading}>
+        <main className="promach-page">
         {/* Floating Neon Background Ambient Glows */}
         <div className="ambient-glow ambient-glow--1" aria-hidden="true" />
         <div className="ambient-glow ambient-glow--2" aria-hidden="true" />
@@ -579,7 +722,8 @@ export function LandingPage() {
         <MetricsSection />
         <FinalCta />
         <Footer />
-      </main>
-    </SmoothScrollProvider>
+        </main>
+      </SmoothScrollProvider>
+    </>
   );
 }
