@@ -2,7 +2,7 @@
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useEffect, useRef } from "react";
+import { type CSSProperties, type MouseEvent, useEffect, useRef } from "react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -11,30 +11,45 @@ const capabilities = [
     index: "01",
     title: "CNC Milling",
     detail: "Complex faces, pockets, slots, and contour geometry held under controlled setup conditions.",
+    metric: "5-axis",
+    tolerance: "+/-0.005 mm",
+    process: ["fixture", "rough", "finish"],
     color: "#00f0ff", // Cyan
   },
   {
     index: "02",
     title: "CNC Turning",
     detail: "Diameters, shoulders, threads, and precision fits made repeatable across production batches.",
+    metric: "18k rpm",
+    tolerance: "thread-fit",
+    process: ["chuck", "turn", "verify"],
     color: "#ff7300", // Orange
   },
   {
     index: "03",
     title: "Grinding",
     detail: "Surface control for flatness, finish, and contact quality where final geometry matters.",
+    metric: "Ra focus",
+    tolerance: "flatness",
+    process: ["dress", "spark", "measure"],
     color: "#b800ff", // Purple
   },
   {
     index: "04",
     title: "Honing",
     detail: "Internal surfaces refined for fit, motion, fluid control, and verified functional performance.",
+    metric: "bore ID",
+    tolerance: "micro finish",
+    process: ["align", "hone", "gauge"],
     color: "#b3ff00", // Lime
   },
   {
     index: "05",
     title: "Complex Assemblies",
     detail: "Machined components planned around downstream assembly, inspection, and production continuity.",
+    metric: "cell build",
+    tolerance: "stack-up",
+    process: ["machine", "inspect", "assemble"],
     color: "#00f0ff", // Cyan again
   },
 ];
@@ -65,6 +80,22 @@ export function HorizontalCapabilities() {
         },
       });
 
+      gsap.fromTo(
+        ".horizontal-capabilities__progress span",
+        { scaleX: 0 },
+        {
+          scaleX: 1,
+          transformOrigin: "left",
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: () => `+=${Math.max(1200, distance + window.innerHeight * 1.4)}`,
+            scrub: true,
+          },
+        },
+      );
+
       // Expand card connector lines as they enter screen center
       gsap.fromTo(
         ".capability-card__line",
@@ -87,7 +118,7 @@ export function HorizontalCapabilities() {
   }, []);
 
   // 3D holographic tilt card physics
-  const handleMouseMove = (e: React.MouseEvent<HTMLElement>, cardColor: string) => {
+  const handleMouseMove = (e: MouseEvent<HTMLElement>, cardColor: string) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -107,7 +138,7 @@ export function HorizontalCapabilities() {
     });
   };
 
-  const handleMouseLeave = (e: React.MouseEvent<HTMLElement>) => {
+  const handleMouseLeave = (e: MouseEvent<HTMLElement>) => {
     const card = e.currentTarget;
     gsap.to(card, {
       rotateX: 0,
@@ -123,8 +154,17 @@ export function HorizontalCapabilities() {
   return (
     <section ref={sectionRef} className="horizontal-capabilities" id="capabilities">
       <div className="horizontal-capabilities__header">
-        <span className="section-kicker">Capability Matrix</span>
-        <h2>Capabilities engineered around tolerance.</h2>
+        <div>
+          <span className="section-kicker">Capability Matrix</span>
+          <h2>Capabilities engineered around tolerance.</h2>
+        </div>
+        <p>
+          Scroll through the production cell. Each process is mapped from setup
+          strategy to inspection confidence before it reaches volume.
+        </p>
+      </div>
+      <div className="horizontal-capabilities__progress" aria-hidden="true">
+        <span />
       </div>
       <div ref={railRef} className="horizontal-capabilities__rail">
         {capabilities.map((item) => (
@@ -135,14 +175,30 @@ export function HorizontalCapabilities() {
               // Apply unique variable colors
               "--theme-primary": item.color,
               "--theme-primary-glow": `${item.color}3F`,
-            } as React.CSSProperties}
+            } as CSSProperties}
             onMouseMove={(e) => handleMouseMove(e, item.color)}
             onMouseLeave={handleMouseLeave}
           >
-            <span>{item.index}</span>
-            <div className="capability-card__line" />
+            <div className="capability-card__top">
+              <span>{item.index}</span>
+              <small>{item.metric}</small>
+            </div>
+            <div className="capability-card__dial" aria-hidden="true">
+              <i />
+              <b />
+            </div>
             <h3>{item.title}</h3>
             <p>{item.detail}</p>
+            <div className="capability-card__process">
+              {item.process.map((step) => (
+                <span key={step}>{step}</span>
+              ))}
+            </div>
+            <div className="capability-card__footer">
+              <span>controlled tolerance</span>
+              <strong>{item.tolerance}</strong>
+            </div>
+            <div className="capability-card__line" />
           </article>
         ))}
       </div>

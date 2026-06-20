@@ -12,25 +12,29 @@ const focusPoints = [
     label: "Tool Changer",
     description: "Review tool exchange path, clearance, and repeatability.",
     rotation: [0.15, -0.68, 0],
-    zoom: 4.2,
+    zoom: 8.4,
+    hotspot: { left: "68%", top: "34%" },
   },
   {
     label: "Motion Systems",
     description: "Inspect axis motion, guided travel, and machine envelope.",
     rotation: [0.2, 0.4, 0],
-    zoom: 4.8,
+    zoom: 8.8,
+    hotspot: { left: "39%", top: "62%" },
   },
   {
     label: "Spindle",
     description: "Move into the cutting center where torque becomes geometry.",
     rotation: [0.1, 0.95, 0],
-    zoom: 3.7,
+    zoom: 7.6,
+    hotspot: { left: "57%", top: "48%" },
   },
   {
     label: "Panel Access",
     description: "Open-view state for enclosure, service, and internal systems.",
     rotation: [0.28, -1.15, 0],
-    zoom: 5.2,
+    zoom: 9.2,
+    hotspot: { left: "76%", top: "58%" },
   },
 ];
 
@@ -86,7 +90,7 @@ function CncModel({
   });
 
   return (
-    <group ref={groupRef} scale={1.65} position={[0, -0.62, 0]}>
+    <group ref={groupRef} scale={0.82} position={[0, -0.7, 0]}>
       <primitive object={scene} />
     </group>
   );
@@ -122,7 +126,13 @@ function TelemetryOverlay() {
   );
 }
 
-function MachineCanvas({ focusIndex }: { focusIndex: FocusIndex }) {
+function MachineCanvas({
+  focusIndex,
+  onFocusChange,
+}: {
+  focusIndex: FocusIndex;
+  onFocusChange: (index: FocusIndex) => void;
+}) {
   const [dragRotation, setDragRotation] = useState({ x: 0, y: 0 });
   const draggingRef = useRef(false);
   const lastPointRef = useRef({ x: 0, y: 0 });
@@ -155,12 +165,16 @@ function MachineCanvas({ focusIndex }: { focusIndex: FocusIndex }) {
         draggingRef.current = false;
       }}
     >
+      <div className="machine-explorer__viewport-label">
+        <span>live inspection bay</span>
+        <strong>{focusPoints[focusIndex].label}</strong>
+      </div>
       <TelemetryOverlay />
       
       <Canvas
         shadows
         dpr={[1, 2]}
-        camera={{ position: [0, 0.5, 4.6], fov: 36 }}
+        camera={{ position: [0, 1.35, 8.8], fov: 42 }}
         gl={{ antialias: true, alpha: true }}
       >
         <color attach="background" args={["#040508"]} />
@@ -185,6 +199,20 @@ function MachineCanvas({ focusIndex }: { focusIndex: FocusIndex }) {
           <CncModel focusIndex={focusIndex} dragRotation={dragRotation} />
         </Suspense>
       </Canvas>
+      <div className="machine-explorer__hotspots" aria-label="Machine model focus points">
+        {focusPoints.map((point, index) => (
+          <button
+            key={point.label}
+            type="button"
+            className={index === focusIndex ? "is-active" : ""}
+            style={point.hotspot}
+            onClick={() => onFocusChange(index)}
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+          </button>
+        ))}
+      </div>
+      <div className="machine-explorer__scanline" aria-hidden="true" />
     </div>
   );
 }
@@ -200,10 +228,15 @@ export function CncMachineExplorer() {
         <p>
           Rotate, drag, and tap the focal triggers to explore critical tooling pathways, multi-axis guide configurations, and the high-torque cutting spindle envelope.
         </p>
+        <div className="machine-explorer__specs">
+          <span>4 inspection zones</span>
+          <span>drag enabled</span>
+          <span>live telemetry</span>
+        </div>
       </div>
 
       {modelUrl ? (
-        <MachineCanvas focusIndex={focusIndex} />
+        <MachineCanvas focusIndex={focusIndex} onFocusChange={setFocusIndex} />
       ) : (
         <div className="machine-explorer__model-slot">
           <span className="section-kicker">Model Required</span>

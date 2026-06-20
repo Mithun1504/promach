@@ -196,6 +196,12 @@ const metrics = [
   { label: "Build Scope", value: "Custom Manufacturing" },
 ];
 
+const projectSteps = [
+  "Geometry review",
+  "Material and tolerance map",
+  "Prototype to production path",
+];
+
 function SplitTitle({ title, isActive = true }: { title: string; isActive?: boolean }) {
   return (
     <>
@@ -338,6 +344,11 @@ function FinalCta() {
 
   return (
     <section ref={sectionRef} className={`final-cta ${active ? "is-active" : ""}`} id="contact">
+      <div className="final-cta__blueprint" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
       <div>
         <span className="section-kicker">Project Review</span>
         <h2>
@@ -347,22 +358,30 @@ function FinalCta() {
           />
         </h2>
         
-        {/* Holographic Diagnostic Panel */}
-        <div className="font-mono text-[10px] text-[var(--theme-primary)] flex flex-col gap-1 tracking-wider mt-12 bg-black/60 p-5 rounded-2xl border border-[var(--line)] backdrop-blur-md max-w-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-primary)] animate-pulse" />
-            <span className="font-bold text-[11px] text-white">INQUIRY GATEWAY: ACTIVE</span>
+        <div className="final-cta__diagnostic">
+          <div>
+            <span />
+            <strong>INQUIRY GATEWAY: ACTIVE</strong>
           </div>
-          <div>ENDPOINT: SMTP://projects@promach.example</div>
-          <div>PROTOCOL: SECURE SSL/TLS</div>
-          <div>QUEUE CAPACITY: 24/7 LIVE</div>
+          <p>Upload drawings, material notes, or production targets. We will translate them into a machining route, inspection plan, and delivery path.</p>
         </div>
       </div>
       <div className="final-cta__side">
+        <div className="final-cta__module-header">
+          <span>RFQ CELL</span>
+          <strong>24h review window</strong>
+        </div>
         <p>
           Let&apos;s align on geometric parameters, material selection, quality inspection paths, and production timeline requirements.
         </p>
         <a href="mailto:projects@promach.example">Request A Quote</a>
+        <div className="final-cta__steps">
+          {projectSteps.map((step, index) => (
+            <span key={step}>
+              {String(index + 1).padStart(2, "0")} / {step}
+            </span>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -371,30 +390,37 @@ function FinalCta() {
 function Footer() {
   return (
     <footer className="site-footer">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#040508] to-[#080b12] pointer-events-none z-0 opacity-80" />
-      <div className="site-footer__brand z-10">
+      <div className="site-footer__machine" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="site-footer__brand">
         <a href="#top">
           <span>PRO</span>MACH
         </a>
-        <p className="mt-2 text-sm text-[var(--muted)]">We engineer precision.</p>
-        <div className="mt-6 text-[10px] font-mono text-[var(--theme-primary)]/70 uppercase tracking-widest">
+        <p>We engineer precision.</p>
+        <div className="site-footer__system">
           SYSTEMS INITIATED // OK_2026
         </div>
       </div>
-      <div className="z-10">
+      <div>
         <h3>Engineering Consultation</h3>
         <a href="mailto:engineering@promach.example">engineering@promach.example</a>
+        <p>DFM, tolerance strategy, process routing.</p>
       </div>
-      <div className="z-10">
+      <div>
         <h3>Project Discussion</h3>
         <a href="mailto:projects@promach.example">projects@promach.example</a>
+        <p>RFQs, prototypes, production planning.</p>
       </div>
-      <div className="z-10">
+      <div>
         <h3>Connect</h3>
         <a href="#contact">Request Quote</a>
         <a href="#capabilities">Capabilities</a>
+        <a href="#technology">Machine Explorer</a>
       </div>
-      <small className="z-10">Copyright 2026 ProMach. Precision CNC Manufacturing.</small>
+      <small>Copyright 2026 ProMach. Precision CNC Manufacturing.</small>
     </footer>
   );
 }

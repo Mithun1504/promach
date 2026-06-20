@@ -13,16 +13,22 @@ const messages = [
     kicker: "Precision Transfer",
     title: "Motion finds its datum.",
     copy: "A chrome reference drops out of the machine path and aligns with the center of the next mechanical system.",
+    stat: "0.00 mm",
+    statLabel: "datum drift",
   },
   {
     kicker: "Mechanical Lock",
     title: "The gear accepts the load.",
     copy: "Once centered, the ball becomes the rotational reference while the surrounding geometry begins to move.",
+    stat: "780 deg",
+    statLabel: "scroll indexed rotation",
   },
   {
     kicker: "Controlled Rotation",
     title: "Every degree is intentional.",
     copy: "The transfer completes only after motion, alignment, and repeatability are visually confirmed.",
+    stat: "3 gates",
+    statLabel: "alignment checks",
   },
 ];
 
@@ -91,6 +97,7 @@ export function GearTransferSection() {
       aria-label="Gear transfer sequence"
     >
       <div className="gear-transfer__stage">
+        <div className="gear-transfer__bay-grid" aria-hidden="true" />
         <div className="gear-transfer__copy">
           {messages.map((message, index) => {
             const isActive = index === activeMessage;
@@ -102,12 +109,22 @@ export function GearTransferSection() {
                 <span className="section-kicker">{message.kicker}</span>
                 <h2>{renderSplitTitle(message.title, isActive)}</h2>
                 <p>{message.copy}</p>
+                <div className="gear-transfer__readout">
+                  <strong>{message.stat}</strong>
+                  <span>{message.statLabel}</span>
+                </div>
               </article>
             );
           })}
         </div>
 
         <div className="gear-transfer__visual" aria-hidden="true">
+          <div className="gear-transfer__status">
+            <span>TRANSFER BAY</span>
+            <strong>LOCKED</strong>
+          </div>
+          <div className="gear-transfer__ring gear-transfer__ring--outer" />
+          <div className="gear-transfer__ring gear-transfer__ring--inner" />
           <div ref={gearRef} className="gear-transfer__gear">
             <Image
               src={gearImage}
@@ -118,6 +135,11 @@ export function GearTransferSection() {
               className="gear-transfer__gear-image"
             />
             <div className="gear-transfer__gear-hole" />
+          </div>
+          <div className="gear-transfer__inspection-card">
+            <span>RUNOUT</span>
+            <strong>+/- 0.005</strong>
+            <small>ball seated to datum center</small>
           </div>
         </div>
       </div>
