@@ -54,8 +54,7 @@ type CachedFrame = {
 };
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_S3_FRAMES_URL ??
-  "https://promach.s3.ap-south-1.amazonaws.com";
+  process.env.NEXT_PUBLIC_S3_FRAMES_URL || '';
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));

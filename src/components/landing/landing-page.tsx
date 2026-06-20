@@ -246,8 +246,7 @@ function useFramePreloader() {
           sequence.extension
         }`;
         const base =
-          process.env.NEXT_PUBLIC_S3_FRAMES_URL ??
-          "https://promach.s3.ap-south-1.amazonaws.com";
+          process.env.NEXT_PUBLIC_S3_FRAMES_URL || '';
         return `${base.replace(/\/$/, "")}/${sequence.folder}/${file}`;
       }),
     );
