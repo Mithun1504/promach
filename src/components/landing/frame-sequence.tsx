@@ -74,19 +74,41 @@ function drawCover(
   let x = 0;
   let y = 0;
 
-  if (imageRatio > canvasRatio) {
-    height = canvas.height;
-    width = height * imageRatio;
-    x =
-      align === "left"
-        ? 0
-        : align === "right"
-          ? canvas.width - width
-          : (canvas.width - width) / 2;
+  // Detect mobile portrait viewport based on canvas dimensions
+  const isMobilePortrait = canvas.width < 768 && canvasRatio < 0.75;
+
+  if (isMobilePortrait) {
+    // Zoom out on mobile portrait to fit the landscape frame sequence beautifully.
+    // Scale by 0.76 to make the machine smaller, bringing it fully into focus.
+    const zoomFactor = 0.76;
+    if (imageRatio > canvasRatio) {
+      height = canvas.height * zoomFactor;
+      width = height * imageRatio;
+      // Center the zoomed-out frame horizontally and vertically
+      x = (canvas.width - width) / 2;
+      y = (canvas.height - height) / 2;
+    } else {
+      width = canvas.width * zoomFactor;
+      height = width / imageRatio;
+      x = (canvas.width - width) / 2;
+      y = (canvas.height - height) / 2;
+    }
   } else {
-    width = canvas.width;
-    height = width / imageRatio;
-    y = (canvas.height - height) / 2;
+    // Standard desktop cover cropping
+    if (imageRatio > canvasRatio) {
+      height = canvas.height;
+      width = height * imageRatio;
+      x =
+        align === "left"
+          ? 0
+          : align === "right"
+            ? canvas.width - width
+            : (canvas.width - width) / 2;
+    } else {
+      width = canvas.width;
+      height = width / imageRatio;
+      y = (canvas.height - height) / 2;
+    }
   }
 
   context.clearRect(0, 0, canvas.width, canvas.height);

@@ -1956,18 +1956,29 @@ button {
 
   .gear-transfer__stage {
     grid-template-columns: 1fr;
-    grid-template-rows: 0.8fr 1.2fr;
-    gap: 32px;
-    padding-top: 80px;
+    grid-template-rows: auto auto; /* Adapt layout dynamically on mobile */
+    gap: 16px;
+    padding-top: 88px; /* Safe padding below navbar */
   }
 
   .gear-transfer__copy {
-    height: 240px;
+    height: 330px; /* Expanded parent height to fit absolute articles */
+    position: relative;
+  }
+
+  .gear-transfer__copy article {
+    justify-content: flex-start; /* Align content to top to prevent navbar overlap */
+    padding-top: 0;
+  }
+
+  .gear-transfer__copy h2 {
+    font-size: clamp(1.75rem, 6.5vw, 2.3rem);
+    line-height: 1.1;
   }
 
   .gear-transfer__gear {
-    width: min(72vw, 360px);
-    height: min(72vw, 360px);
+    width: min(72vw, 340px);
+    height: min(72vw, 340px);
   }
 
   .gear-transfer__status,
@@ -1981,8 +1992,96 @@ button {
     grid-template-columns: 1fr;
   }
 
+  /* Capabilities responsive vertical centering */
+  .horizontal-capabilities {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 0 20px; /* Tight padding to maximize vertical viewport space */
+  }
+
   .horizontal-capabilities__header {
     grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .horizontal-capabilities__header h2 {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    line-height: 1.15;
+  }
+
+  .horizontal-capabilities__header p {
+    font-size: 0.92rem;
+    line-height: 1.45;
+    margin-bottom: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Clamp to save vertical space on mobile */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .horizontal-capabilities__progress {
+    margin-bottom: 16px;
+  }
+
+  /* Move capability card configurations here to cover tablets and mobile */
+  .capability-card {
+    width: 290px;
+    min-height: 310px;
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .capability-card h3 {
+    font-size: 1.45rem;
+    margin-top: 8px;
+  }
+
+  .capability-card p {
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+
+  .capability-card__dial {
+    width: 68px;
+    height: 68px;
+    margin: 10px 0;
+  }
+
+  .capability-card__dial i {
+    inset: 14px;
+  }
+
+  .capability-card__dial b {
+    inset: 28px;
+  }
+
+  .capability-card__top small {
+    font-size: 0.6rem;
+    padding: 4px 8px;
+  }
+
+  .capability-card__footer {
+    margin-top: 10px;
+  }
+
+  .capability-card__footer span {
+    font-size: 0.58rem;
+  }
+
+  .capability-card__footer strong {
+    font-size: 0.8rem;
+  }
+
+  .capability-card__process {
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .capability-card__process span {
+    font-size: 0.56rem;
+    padding: 3px 6px;
   }
 
   .machine-explorer__controls,
@@ -2023,14 +2122,18 @@ button {
     top: 52%;
   }
 
+  .gear-transfer__copy h2 {
+    font-size: clamp(1.4rem, 5.5vw, 1.85rem);
+  }
+
   .chrome-transition,
   .machine-explorer,
   .horizontal-capabilities,
   .industries-section,
   .metrics-section,
   .final-cta {
-    padding-top: 100px;
-    padding-bottom: 100px;
+    padding-top: 60px;
+    padding-bottom: 60px;
   }
 
   .machine-explorer__canvas,
@@ -2041,30 +2144,6 @@ button {
   .machine-explorer__controls,
   .metrics-section__grid {
     grid-template-columns: 1fr;
-  }
-
-  .capability-card {
-    width: 320px;
-    min-height: 398px;
-    padding: 24px;
-  }
-
-  .capability-card h3 {
-    font-size: 2.25rem;
-  }
-
-  .capability-card__dial {
-    width: 108px;
-    height: 108px;
-    margin: 20px 0;
-  }
-
-  .capability-card__dial i {
-    inset: 22px;
-  }
-
-  .capability-card__dial b {
-    inset: 44px;
   }
 
   .final-cta__blueprint {
