@@ -1146,24 +1146,65 @@ button {
 
 .capability-card {
   position: relative;
-  display: grid;
   width: 430px;
-  min-height: 410px;
-  padding: 26px;
-  border: 1px solid rgba(255, 255, 255, 0.065);
+  height: 450px;
+  perspective: 1200px;
+  cursor: pointer;
+}
+
+.capability-card__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.capability-card.is-flipped .capability-card__inner {
+  transform: rotateY(180deg);
+}
+
+.capability-card__front,
+.capability-card__back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.065);
   background:
     radial-gradient(circle at 88% 14%, var(--theme-primary-glow), transparent 23%),
     linear-gradient(150deg, rgba(255, 255, 255, 0.075), transparent 38%),
     rgba(14, 18, 27, 0.58);
   backdrop-filter: blur(16px);
-  overflow: hidden;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-style: preserve-3d;
+  overflow: hidden;
 }
 
-.capability-card::before {
+.capability-card__front {
+  display: grid;
+  padding: 26px;
+  transform: rotateY(0deg);
+  z-index: 2;
+}
+
+.capability-card__back {
+  display: flex;
+  flex-direction: column;
+  padding: 26px;
+  transform: rotateY(180deg);
+  background:
+    radial-gradient(circle at 12% 14%, var(--theme-primary-glow), transparent 23%),
+    linear-gradient(210deg, rgba(255, 255, 255, 0.05), transparent 38%),
+    rgba(10, 12, 18, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.capability-card__front::before,
+.capability-card__back::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -1171,7 +1212,8 @@ button {
   pointer-events: none;
 }
 
-.capability-card::after {
+.capability-card__front::after,
+.capability-card__back::after {
   position: absolute;
   inset: auto -10% -20% 18%;
   height: 170px;
@@ -1181,16 +1223,177 @@ button {
   opacity: 0;
   transition: opacity 0.35s ease;
   content: "";
+  pointer-events: none;
 }
 
-.capability-card:hover {
-  transform: translateY(-6px) rotate(0.6deg);
+.capability-card:not(.is-flipped):hover .capability-card__front {
   border-color: var(--theme-primary);
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5), 0 0 24px var(--theme-primary-glow);
 }
 
-.capability-card:hover::after {
+.capability-card:not(.is-flipped):hover .capability-card__front::after {
   opacity: 1;
+}
+
+.capability-card__back-header {
+  margin-bottom: 14px;
+}
+
+.capability-card__back-header span {
+  color: var(--theme-primary);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.capability-card__back-header h4 {
+  margin: 4px 0 0;
+  color: #ffffff;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.capability-card__back-content {
+  position: relative;
+  flex: 1;
+}
+
+.gcode-terminal {
+  width: 100%;
+  height: 126px;
+  background: rgba(4, 5, 8, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: var(--font-mono), monospace;
+  overflow: hidden;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+}
+
+.gcode-terminal__header {
+  font-size: 0.62rem;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.gcode-terminal__window {
+  height: 80px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gcode-terminal__feed {
+  display: flex;
+  flex-direction: column;
+  animation: scroll-gcode 14s linear infinite;
+}
+
+@keyframes scroll-gcode {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.gcode-line {
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--theme-primary);
+  opacity: 0.85;
+  text-shadow: 0 0 6px var(--theme-primary-glow);
+  white-space: nowrap;
+}
+
+.telemetry-specs {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 60%;
+}
+
+.telemetry-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+  padding-bottom: 4px;
+}
+
+.telemetry-item span {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.44);
+  text-transform: uppercase;
+}
+
+.telemetry-item strong {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  color: #ffffff;
+}
+
+.hologram-vector {
+  position: absolute;
+  right: 0;
+  bottom: 50px;
+  width: 90px;
+  height: 90px;
+  pointer-events: none;
+  opacity: 0.28;
+}
+
+.hologram-vector__svg {
+  width: 100%;
+  height: 100%;
+  color: var(--theme-primary);
+  animation: spin-slow 20s linear infinite;
+}
+
+@keyframes spin-slow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.capability-card__back-footer {
+  margin-top: auto;
+}
+
+.return-btn {
+  width: 100%;
+  padding: 11px 16px;
+  background: transparent;
+  border: 1px solid var(--theme-primary);
+  border-radius: 8px;
+  color: var(--theme-primary);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.return-btn:hover {
+  background: var(--theme-primary);
+  color: #0c0f17;
+  box-shadow: 0 0 20px var(--theme-primary-glow);
 }
 
 .capability-card__top {
@@ -1298,7 +1501,7 @@ button {
   align-items: end;
   justify-content: space-between;
   gap: 20px;
-  margin-top: 20px;
+  margin-top: auto;
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.055);
 }
@@ -2028,9 +2231,62 @@ button {
   /* Move capability card configurations here to cover tablets and mobile */
   .capability-card {
     width: 290px;
-    min-height: 310px;
-    padding: 20px;
+    height: 340px;
+    perspective: 1000px;
+  }
+
+  .capability-card__front,
+  .capability-card__back {
+    padding: 16px;
     border-radius: 20px;
+  }
+
+  .capability-card__back-header {
+    margin-bottom: 8px;
+  }
+
+  .capability-card__back-header h4 {
+    font-size: 1.15rem;
+  }
+
+  .gcode-terminal {
+    height: 95px;
+    padding: 8px 10px;
+  }
+
+  .gcode-terminal__window {
+    height: 58px;
+  }
+
+  .gcode-line {
+    font-size: 0.65rem;
+  }
+
+  .telemetry-specs {
+    margin-top: 10px;
+    gap: 4px;
+    max-width: 100%;
+  }
+
+  .telemetry-item {
+    padding-bottom: 2px;
+  }
+
+  .telemetry-item span {
+    font-size: 0.58rem;
+  }
+
+  .telemetry-item strong {
+    font-size: 0.65rem;
+  }
+
+  .hologram-vector {
+    display: none;
+  }
+
+  .return-btn {
+    padding: 8px 12px;
+    font-size: 0.65rem;
   }
 
   .capability-card h3 {
