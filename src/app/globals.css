@@ -787,42 +787,152 @@ button {
   z-index: 2;
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
 }
-
-.gear-transfer__ball,
-.ball-continuation__ball {
+/* Holographic Datum Tracker */
+.datum-tracker {
   position: absolute;
-  width: 52px;
-  height: 52px;
+  width: 90px;
+  height: 90px;
   border-radius: 50%;
   z-index: 12;
-  background:
-    radial-gradient(circle at 32% 28%, #ffffff 0 7%, #eaf0f8 9%, transparent 22%),
-    radial-gradient(circle at 70% 70%, rgba(5, 7, 10, 0.82) 0 17%, transparent 36%),
-    conic-gradient(from 20deg, #eef3fb, #7d8794, #f6f8fb, #26303a, #d9e0e8, #eef3fb);
-  box-shadow:
-    0 24px 44px rgba(0, 0, 0, 0.58),
-    0 0 26px rgba(79, 140, 255, 0.24),
-    inset -14px -16px 24px rgba(0, 0, 0, 0.38),
-    inset 9px 8px 18px rgba(255, 255, 255, 0.72);
   transform-style: preserve-3d;
   will-change: transform, opacity;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  --tracker-color: #00f0ff;
+  --tracker-color-glow: rgba(0, 240, 255, 0.15);
+  color: var(--tracker-color);
+  transition: color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.gear-transfer__ball {
-  top: 50%;
-  left: 50%;
-}
-
-.gear-transfer__ball::before,
-.ball-continuation__ball::before {
+.datum-tracker__core {
   position: absolute;
-  inset: 7px;
-  border-radius: inherit;
-  background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.82), transparent 28%),
-    radial-gradient(circle at 64% 44%, rgba(255, 255, 255, 0.32), transparent 16%);
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px #ffffff,
+    0 0 20px var(--tracker-color),
+    0 0 35px var(--tracker-color);
+  z-index: 10;
+  pointer-events: none;
+  transform: translate(0px, 0px);
+}
+
+.datum-tracker__core::after {
   content: "";
-  mix-blend-mode: screen;
+  position: absolute;
+  inset: -6px;
+  border: 1px solid var(--tracker-color);
+  border-radius: 50%;
+  animation: core-pulse 2s infinite ease-out;
+  opacity: 0.6;
+}
+
+@keyframes core-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.datum-tracker__crosshairs {
+  position: absolute;
+  inset: -12px;
+  pointer-events: none;
+  opacity: 0.44;
+}
+
+.datum-tracker__crosshairs::before,
+.datum-tracker__crosshairs::after {
+  content: "";
+  position: absolute;
+  background: var(--tracker-color);
+}
+
+.datum-tracker__crosshairs::before {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  transform: translateY(-50%);
+  background: linear-gradient(90deg, transparent, var(--tracker-color) 20% 80%, transparent);
+}
+
+.datum-tracker__crosshairs::after {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, var(--tracker-color) 20% 80%, transparent);
+}
+
+.datum-tracker__rings {
+  position: absolute;
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  pointer-events: none;
+}
+
+.datum-tracker__rings .ring-outer {
+  transform-origin: center;
+  animation: datum-spin-cw calc(12s * var(--spin-speed, 1)) linear infinite;
+  color: var(--tracker-color);
+}
+
+.datum-tracker__rings .ring-inner {
+  transform-origin: center;
+  animation: datum-spin-ccw calc(7s * var(--spin-speed, 1)) linear infinite;
+  color: var(--tracker-color);
+  opacity: 0.8;
+}
+
+@keyframes datum-spin-cw {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes datum-spin-ccw {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-360deg); }
+}
+
+.datum-tracker__readout {
+  position: absolute;
+  top: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  background: rgba(6, 8, 14, 0.88);
+  border: 1px solid var(--tracker-color-glow);
+  backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  transition: border-color 0.5s ease;
+}
+
+.datum-tracker__readout span {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.datum-tracker__readout span span {
+  color: var(--tracker-color);
+  opacity: 0.85;
 }
 
 /* Ball Continuation */
